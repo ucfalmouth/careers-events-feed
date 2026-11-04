@@ -25,7 +25,7 @@ jobs:
       - run: node generate-feed.mjs
         env:
           SYMPLICITY_TOKEN: ${{ secrets.SYMPLICITY_TOKEN }}
-          SITE_URL: https://USERNAME.github.io/REPO
+          SITE_URL: https://ucfalmouth.github.io/careers-events-feed/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
