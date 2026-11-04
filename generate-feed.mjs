@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 const BASE = 'https://falmouth-csm.symplicity.com/api/public/v1';
 const ENDPOINT = process.env.ENDPOINT || '/calendar-events';
-const SITE = process.env.SITE_URL || 'https://USERNAME.github.io/REPO'; // your Pages URL
+const SITE = process.env.SITE_URL || 'https://ucfalmouth.github.io/careers-events-feed/'; // your Pages URL
 const TOKEN = process.env.SYMPLICITY_TOKEN;
 if (!TOKEN) throw new Error('SYMPLICITY_TOKEN is not set');
 
