@@ -2,7 +2,7 @@ name: Build feed
 
 on:
   schedule:
-    - cron: '30 * * * *'      # hourly
+    - cron: '30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -26,8 +26,8 @@ jobs:
         env:
           SYMPLICITY_TOKEN: ${{ secrets.SYMPLICITY_TOKEN }}
           SITE_URL: https://USERNAME.github.io/REPO
-      - uses: actions/configure-pages@v5            # bump to latest major
-      - uses: actions/upload-pages-artifact@v3      # bump to latest major
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: public
 
@@ -39,4 +39,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
