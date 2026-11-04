@@ -52,19 +52,25 @@ const raw = await fetchAll();
 if (process.env.DEBUG && raw[0]) console.log('Fields:', Object.keys(raw[0])); // keys only, logs may be public
 
 const now = new Date();
-const events = raw
-  .map(e => ({
-    id: pick(e, FIELDS.id),
-    title: pick(e, FIELDS.title) || 'Untitled event',
-    desc: pick(e, FIELDS.desc),
-    start: pick(e, FIELDS.start),
-    end: pick(e, FIELDS.end),
-    where: pick(e, FIELDS.where),
-    link: pick(e, FIELDS.link) || 'https://falmouth-csm.symplicity.com/'
-  }))
+console.log('API returned:', raw.length, 'records');
+if (raw[0]) console.log('Keys:', Object.keys(raw[0]).join(', '));
+
+const mapped = raw.map(e => ({
+  id: pick(e, FIELDS.id),
+  title: pick(e, FIELDS.title) || 'Untitled event',
+  desc: pick(e, FIELDS.desc),
+  start: pick(e, FIELDS.start),
+  end: pick(e, FIELDS.end),
+  where: pick(e, FIELDS.where),
+  link: pick(e, FIELDS.link) || 'https://falmouth-csm.symplicity.com/'
+}));
+console.log('With a start value:', mapped.filter(e => e.start).length);
+
+const events = mapped
   .filter(e => e.start && new Date(e.end || e.start) >= now)
   .sort((a, b) => new Date(a.start) - new Date(b.start))
   .slice(0, 200);
+console.log('Upcoming:', events.length);
 
 const fmt = d => new Date(d).toLocaleString('en-GB', {
   dateStyle: 'full', timeStyle: 'short', timeZone: 'Europe/London'
