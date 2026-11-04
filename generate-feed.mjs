@@ -9,12 +9,11 @@ if (!TOKEN) throw new Error('SYMPLICITY_TOKEN is not set');
 // CONFIRM against /v1/fields/calendar-events. First match wins.
 const FIELDS = {
   id:    ['id'],
-  title: ['label', 'name', 'title'],
-  desc:  ['description', 'details', 'overview'],
-  start: ['startDate', 'start', 'startDatetime', 'startTime'],
-  end:   ['endDate', 'end', 'endDatetime', 'endTime'],
-  where: ['location', 'address'],
-  link:  ['url', 'link', 'website']
+  title: ['title', 'label'],
+  desc:  ['description'],
+  where: ['location'],
+  link:  ['externalLink'],
+  cat:   ['category']
 };
 
 // Pick values and relation objects come back as {id, label}
@@ -23,6 +22,24 @@ const pick = (e, names) => {
   for (const n of names) if (e[n] != null && e[n] !== '') return flat(e[n]);
   return '';
 };
+
+// Combine date + time into a real Date, treating the values as UK local time
+function londonToDate(dateStr, timeStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = String(dateStr).slice(0, 10).split('-').map(Number);
+  const [hh = 0, mm = 0, ss = 0] = String(timeStr || '00:00:00').split(':').map(Number);
+  if (!y || !m || !d) return null;
+  const guess = Date.UTC(y, m - 1, d, hh, mm, ss);
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/London', hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).formatToParts(new Date(guess)).map(x => [x.type, x.value])
+  );
+  const asLondon = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+  return new Date(guess - (asLondon - guess));   // shift to the true UTC instant
+}
 
 async function fetchAll() {
   const out = [];
@@ -55,20 +72,24 @@ const now = new Date();
 console.log('API returned:', raw.length, 'records');
 if (raw[0]) console.log('Keys:', Object.keys(raw[0]).join(', '));
 
-const mapped = raw.map(e => ({
-  id: pick(e, FIELDS.id),
-  title: pick(e, FIELDS.title) || 'Untitled event',
-  desc: pick(e, FIELDS.desc),
-  start: pick(e, FIELDS.start),
-  end: pick(e, FIELDS.end),
-  where: pick(e, FIELDS.where),
-  link: pick(e, FIELDS.link) || 'https://falmouth-csm.symplicity.com/'
-}));
-console.log('With a start value:', mapped.filter(e => e.start).length);
+const mapped = raw.map(e => {
+  const start = londonToDate(e.date, e.startTime);
+  const end = londonToDate(e.date, e.endTime) || start;
+  const cat = pick(e, FIELDS.cat);
+  return {
+    id: pick(e, FIELDS.id),
+    title: pick(e, FIELDS.title) || 'Untitled event',
+    desc: [cat && `Category: ${cat}`, pick(e, FIELDS.desc)].filter(Boolean).join('\n\n'),
+    start, end,
+    where: pick(e, FIELDS.where),
+    link: pick(e, FIELDS.link) || 'https://falmouth-csm.symplicity.com/'
+  };
+});
+console.log('With a valid start:', mapped.filter(e => e.start && !isNaN(e.start)).length);
 
 const events = mapped
-  .filter(e => e.start && new Date(e.end || e.start) >= now)
-  .sort((a, b) => new Date(a.start) - new Date(b.start))
+  .filter(e => e.start && !isNaN(e.start) && e.end >= now)
+  .sort((a, b) => a.start - b.start)
   .slice(0, 200);
 console.log('Upcoming:', events.length);
 
