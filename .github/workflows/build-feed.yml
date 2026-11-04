@@ -18,16 +18,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
       - run: node generate-feed.mjs
         env:
           SYMPLICITY_TOKEN: ${{ secrets.SYMPLICITY_TOKEN }}
-          SITE_URL: https://ucfalmouth.github.io/careers-events-feed
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+          SITE_URL: https://USERNAME.github.io/REPO
+      - uses: actions/configure-pages@v5            # bump to latest major
+      - uses: actions/upload-pages-artifact@v3      # bump to latest major
         with:
           path: public
 
