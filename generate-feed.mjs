@@ -66,7 +66,7 @@ const icsEsc = s => String(s).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').repla
 const fold = line => line.match(/.{1,73}/g).join('\r\n ');
 
 const raw = await fetchAll();
-// if (process.env.DEBUG && raw[0]) console.log('Fields:', Object.keys(raw[0])); // keys only, logs may be public
+if (process.env.DEBUG && raw[0]) console.log('Fields:', Object.keys(raw[0])); // keys only, logs may be public
 if (raw.length === 0) throw new Error('API returned no records'); // If job fails, the last good feed stays online, as it does for API errors.
 
 const now = new Date();
