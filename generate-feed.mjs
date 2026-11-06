@@ -66,11 +66,12 @@ const icsEsc = s => String(s).replace(/\\/g, '\\\\').replace(/\n/g, '\\n').repla
 const fold = line => line.match(/.{1,73}/g).join('\r\n ');
 
 const raw = await fetchAll();
-if (process.env.DEBUG && raw[0]) console.log('Fields:', Object.keys(raw[0])); // keys only, logs may be public
+// if (process.env.DEBUG && raw[0]) console.log('Fields:', Object.keys(raw[0])); // keys only, logs may be public
+if (raw.length === 0) throw new Error('API returned no records'); // If job fails, the last good feed stays online, as it does for API errors.
 
 const now = new Date();
-console.log('API returned:', raw.length, 'records');
-if (raw[0]) console.log('Keys:', Object.keys(raw[0]).join(', '));
+// console.log('API returned:', raw.length, 'records');
+// if (raw[0]) console.log('Keys:', Object.keys(raw[0]).join(', '));
 
 const mapped = raw.map(e => {
   const start = londonToDate(e.date, e.startTime);
@@ -85,13 +86,13 @@ const mapped = raw.map(e => {
     link: pick(e, FIELDS.link) || 'https://falmouth-csm.symplicity.com/'
   };
 });
-console.log('With a valid start:', mapped.filter(e => e.start && !isNaN(e.start)).length);
+// console.log('With a valid start:', mapped.filter(e => e.start && !isNaN(e.start)).length);
 
 const events = mapped
   .filter(e => e.start && !isNaN(e.start) && e.end >= now)
   .sort((a, b) => a.start - b.start)
   .slice(0, 200);
-console.log('Upcoming:', events.length);
+// console.log('Upcoming:', events.length);
 
 const fmt = d => new Date(d).toLocaleString('en-GB', {
   dateStyle: 'full', timeStyle: 'short', timeZone: 'Europe/London'
