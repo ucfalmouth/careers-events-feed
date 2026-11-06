@@ -124,6 +124,9 @@ ${items}
 `;
 
 const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Careers events//EN', 'CALSCALE:GREGORIAN',
+  'X-WR-CALNAME:Careers events',
+  'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+  'X-PUBLISHED-TTL:PT1H',
   ...events.flatMap(e => [
     'BEGIN:VEVENT',
     `UID:${e.id || e.title + e.start}@falmouth-csm`,
