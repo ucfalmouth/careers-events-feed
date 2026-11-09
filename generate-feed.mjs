@@ -102,7 +102,7 @@ const items = events.map(e => `  <item>
     <title>${xmlEsc(e.title)}</title>
     <link>${xmlEsc(e.link)}</link>
     <guid isPermaLink="false">${xmlEsc(e.id || e.title + e.start)}</guid>
-    <pubDate>${new Date(e.start).toUTCString()}</pubDate>
+    <pubDate>${new Date(Math.min(e.start, now)).toUTCString()}</pubDate>
     <description>${cdata(
       `<p><strong>When:</strong> ${fmt(e.start)}${e.end ? ' to ' + fmt(e.end) : ''}</p>` +
       (e.where ? `<p><strong>Where:</strong> ${e.where}</p>` : '') +
