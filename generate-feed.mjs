@@ -97,7 +97,8 @@ const day = d => new Date(d).toLocaleDateString('en-GB', {
 
 // Fixed anchor in the past. Soonest event gets the newest pubDate, so a
 // "newest first" sort lists events in date order. Stable between builds.
-const ANCHOR = Date.UTC(2026, 10, 1); // 1 Nov 2026
+// const ANCHOR = Date.UTC(2026, 10, 1); // 1 Nov 2026
+const ANCHOR = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1); // start of the current month
 const pubFor = (start, i) => new Date(Math.min(
   ANCHOR - (start.getTime() - ANCHOR) / 60,   // later start = older pubDate
   now.getTime()
