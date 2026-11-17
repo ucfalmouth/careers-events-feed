@@ -68,21 +68,6 @@ if (raw.length === 0) throw new Error('API returned no records'); // If job fail
 
 const now = new Date();
 
-// Keep each item's original pubDate from the live feed so it stays stable between builds
-const firstSeen = new Map();
-try {
-  const res = await fetch(`${SITE}/feed.xml`);
-  if (res.ok) {
-	const xml = await res.text();
-	for (const [item] of xml.matchAll(/<item>[\s\S]*?<\/item>/g)) {
-	  const guid = item.match(/<guid[^>]*>([^<]*)<\/guid>/)?.[1];
-	  const pub = item.match(/<pubDate>([^<]*)<\/pubDate>/)?.[1];
-	  const d = pub ? new Date(pub) : null;
-	  if (guid && d && !isNaN(d) && d <= now) firstSeen.set(guid, d); // ignore future dates
-	}
-  }
-} catch { /* first run or fetch failed: new items just get "now" */ }
-
 const mapped = raw.map(e => {
   const start = londonToDate(e.date, e.startTime);
   const end = londonToDate(e.date, e.endTime) || start;
@@ -105,19 +90,22 @@ const events = mapped
 const fmt = d => new Date(d).toLocaleString('en-GB', {
 	dateStyle: 'full', timeStyle: 'short', timeZone: 'Europe/London'
   });
-  
-const fmtShort = d => new Date(d).toLocaleString('en-GB', {
-	day: '2-digit', month: '2-digit', year: 'numeric',
-	hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London'
-  });
 
 const day = d => new Date(d).toLocaleDateString('en-GB', {
 	day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London'
   });
+
+// Fixed anchor in the past. Soonest event gets the newest pubDate, so a
+// "newest first" sort lists events in date order. Stable between builds.
+const ANCHOR = Date.UTC(2026, 10, 1); // 1 Nov 2026
+const pubFor = (start, i) => new Date(Math.min(
+  ANCHOR - (start.getTime() - ANCHOR) / 60,   // later start = older pubDate
+  now.getTime()
+) - i * 1000);                                // 1 second per list position breaks ties
   
-const items = events.map(e => {
+const items = events.map((e, i) => {
 	const guid = xmlEsc(e.id || e.title + e.start);
-	const published = firstSeen.get(guid) || now;
+	const published = pubFor(e.start, i);
 	return `  <item>
 	  <title>${xmlEsc(`${day(e.start)}: ${e.title}`)}</title>
 	  <link>${xmlEsc(e.link)}</link>${e.cat ? `
