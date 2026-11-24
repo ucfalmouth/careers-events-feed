@@ -95,18 +95,14 @@ const day = d => new Date(d).toLocaleDateString('en-GB', {
 	day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Europe/London'
   });
 
-// Fixed anchor in the past. Soonest event gets the newest pubDate, so a
-// "newest first" sort lists events in date order. Stable between builds.
-// const ANCHOR = Date.UTC(2026, 10, 1); // 1 Nov 2026
-const ANCHOR = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1); // start of the current month
-const pubFor = (start, i) => new Date(Math.min(
-  ANCHOR - (start.getTime() - ANCHOR) / 60,   // later start = older pubDate
-  now.getTime()
-) - i * 1000);                                // 1 second per list position breaks ties
+// Start of today, UK time. en-CA formats dates as YYYY-MM-DD.
+const todayLondon = now.toLocaleDateString('en-CA', { timeZone: 'Europe/London' });
+const startOfToday = londonToDate(todayLondon, '00:00:00');
+const pubFor = i => new Date(startOfToday.getTime() - i * 1000);
   
 const items = events.map((e, i) => {
 	const guid = xmlEsc(e.id || e.title + e.start);
-	const published = pubFor(e.start, i);
+	const published = pubFor(i);
 	return `  <item>
 	  <title>${xmlEsc(`${day(e.start)}: ${e.title}`)}</title>
 	  <link>${xmlEsc(e.link)}</link>${e.cat ? `
